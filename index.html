@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistente Astro</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #00FF00;
+            margin: 0;
+            padding: 0;
+        }
+
+        .terminal {
+            width: 100%;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #222;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            height: 70vh;
+            overflow-y: auto;
+        }
+
+        .terminal pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+        }
+
+        .input-line input {
+            background-color: transparent;
+            color: #00FF00;
+            border: none;
+            outline: none;
+            flex-grow: 1;
+            font-size: 16px;
+            padding: 5px;
+        }
+
+        .input-line::before {
+            content: "> ";
+            color: #00FF00;
+        }
+
+        .commands-list {
+            margin-top: 20px;
+        }
+
+        .commands-list button {
+            background-color: #444;
+            color: #00FF00;
+            border: 1px solid #00FF00;
+            margin: 5px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .commands-list button:hover {
+            background-color: #00FF00;
+            color: #000;
+        }
+
+        @media (max-width: 600px) {
+            .terminal {
+                width: 90%;
+            }
+
+            .input-line input {
+                font-size: 14px;
+            }
+
+            .commands-list button {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="terminal">
+    <pre>Olá senhor 🤵</pre>
+    <pre>O que deseja hoje?</pre>
+
+    <div class="input-line">
+        <input type="text" id="user-input" placeholder="Digite um comando...">
+    </div>
+
+    <div class="commands-list">
+        <button onclick="executeCommand(1)">[1] Previsão do tempo agora</button>
+        <button onclick="executeCommand(2)">[2] Adicionar lembrete</button>
+        <button onclick="executeCommand(3)">[3] Listar lembretes</button>
+        <button onclick="executeCommand(4)">[4] Deletar algum lembrete</button>
+        <button onclick="executeCommand(5)">[5] Enviar e-mail para:</button>
+        <!-- Adicione outros comandos conforme necessário -->
+    </div>
+</div>
+
+<script>
+    function executeCommand(commandId) {
+        const inputField = document.getElementById('user-input');
+        const userInput = inputField.value.trim();
+        const terminal = document.querySelector('.terminal pre');
+
+        if (userInput) {
+            terminal.innerHTML += `\n> ${userInput}`;
+        }
+
+        inputField.value = '';
+
+        switch (commandId) {
+            case 1:
+                terminal.innerHTML += `\nPrevisão do tempo: Enviado para o assistente...`;
+                break;
+            case 2:
+                terminal.innerHTML += `\nAdicionar lembrete: Enviado para o assistente...`;
+                break;
+            case 3:
+                terminal.innerHTML += `\nListar lembretes: Enviado para o assistente...`;
+                break;
+            case 4:
+                terminal.innerHTML += `\nDeletar lembrete: Enviado para o assistente...`;
+                break;
+            case 5:
+                terminal.innerHTML += `\nEnviar e-mail: Digite o endereço de e-mail para enviar.`;
+                break;
+            default:
+                terminal.innerHTML += `\nComando desconhecido!`;
+                break;
+        }
+
+        terminal.scrollTop = terminal.scrollHeight; // Rolagem automática para o final
+    }
+</script>
+
+</body>
+</html>
