@@ -42,9 +42,9 @@ async function verificarCondicoesClimaticas() {
         const descricao = data.weather[0].description;
         const vaiChover = descricao.toLowerCase().includes('chuva');
 
-        let mensagem = `Alfred, seu assistente pessoal, trazendo a previsão do tempo para ${CITY}:\n\n`;
+        let mensagem = `Trazendo a previsão do tempo para ${CITY}:\n\n`;
         if (temperatura > 33) {
-            mensagem += "Alfred: Vai estar muuuito acima da temperatura que você gosta, chefe! Temperatura prevista acima de 33°C.\n";
+            mensagem += "Alfred: Vai estar muito acima da temperatura que você gosta, chefe! Temperatura prevista acima de 33°C.\n";
         } else if (temperatura > 30) {
             mensagem += "Alfred: A temperatura estará um pouco acima do confortável hoje, mais de 30°C.\n";
         } else if (temperatura < 27) {
@@ -72,6 +72,9 @@ function enviarEmail(mensagem, assunto = "Notificação do Alfred") {
         auth: {
             user: EMAIL_ORIGEM,
             pass: SENHA,
+        },
+        tls: {
+            rejectUnauthorized: false 
         }
     });
 
@@ -108,7 +111,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));  // Serve o arquivo index.html da raiz
   });
 
-  
+
 // Endpoint para verificar o clima
 app.get('/verificar-clima', async (req, res) => {
     const mensagemClima = await verificarCondicoesClimaticas();
