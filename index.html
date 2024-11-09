@@ -59,15 +59,13 @@
 
         .terminal {
             background-color: #222;
-            color: rgb(166, 223, 9);
+            color: #0f0;
             padding: 15px;
             width: 100%;
             max-width: 600px;
             margin-top: 20px;
             font-family: 'Courier New', Courier, monospace;
             border-radius: 8px;
-            height: 250px;
-            overflow-y: auto;
             text-align: left;
             white-space: pre-wrap;
         }
@@ -81,6 +79,16 @@
             width: 100%;
             font-size: 16px;
             padding: 5px;
+        }
+
+        .menu {
+            margin-bottom: 20px;
+            text-align: left;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            padding-left: 10px;
+            max-width: 600px;
+            width: 100%;
         }
 
         .modal {
@@ -144,15 +152,22 @@
     <div class="container">
         <h1>Olá, em que posso ajudar?</h1>
 
+        <!-- Menu de Comandos -->
+        <div class="menu">
+            <strong>Comandos:</strong>
+            <ul>
+                <li>1 - Verificar clima</li>
+                <li>2 - Enviar e-mail</li>
+                <li>3 - Cadastrar lembrete</li>
+                <li>4 - Verificar se vai chover hoje</li>
+                <li>5 - Listar lembretes</li>
+                <li>6 - Deletar lembretes</li>
+            </ul>
+        </div>
+
         <!-- Terminal -->
         <div class="terminal" id="terminal">
             Digite um comando para continuar:
-            <br>1 - Verificar clima
-            <br>2 - Enviar e-mail
-            <br>3 - Cadastrar lembrete
-            <br>4 - Verificar se vai chover hoje
-            <br>5 - Listar lembretes
-            <br>6 - Deletar lembretes
             <br><br>
             <input type="text" id="comandoInput" placeholder="Digite o comando..." autofocus>
         </div>
@@ -166,6 +181,18 @@
             <textarea id="emailMensagem" placeholder="Mensagem"></textarea>
             <button onclick="enviarEmail()">Enviar</button>
             <button class="modal-close" onclick="fecharModal()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal para Cadastrar Lembrete -->
+    <div class="modal" id="modalLembrete">
+        <div class="modal-content">
+            <h3>Cadastrar Lembrete</h3>
+            <input type="text" id="lembreteTitulo" placeholder="Título do lembrete">
+            <textarea id="lembreteDescricao" placeholder="Descrição do lembrete"></textarea>
+            <input type="datetime-local" id="lembreteDataHora" placeholder="Data e hora">
+            <button onclick="cadastrarLembrete()">Cadastrar</button>
+            <button class="modal-close" onclick="fecharModalLembrete()">Fechar</button>
         </div>
     </div>
 
@@ -211,9 +238,10 @@
 
         // Função para cadastrar lembrete
         async function cadastrarLembrete() {
-            const titulo = prompt('Digite o título do lembrete:');
-            const descricao = prompt('Digite a descrição do lembrete:');
-            const dataHora = prompt('Digite a data e hora do lembrete (yyyy-mm-ddThh:mm):');
+            const titulo = document.getElementById('lembreteTitulo').value;
+            const descricao = document.getElementById('lembreteDescricao').value;
+            const dataHora = document.getElementById('lembreteDataHora').value;
+
             if (!titulo || !descricao || !dataHora) {
                 alert('Preencha todos os campos!');
                 return;
@@ -226,78 +254,34 @@
                 });
                 const data = await response.json();
                 alert(data.mensagem);
+                fecharModalLembrete();
             } catch (error) {
                 alert('Erro ao cadastrar lembrete.');
             }
         }
 
-        // Função para listar lembretes
-        async function listarLembretes() {
-            const response = await fetch('/lembretes');
-            const lembretes = await response.json();
-            const terminal = document.getElementById('terminal');
-            terminal.textContent += '\nLembretes cadastrados:';
-            lembretes.forEach(lembrete => {
-                terminal.textContent += `\n${lembrete.titulo} - ${lembrete.dataHora}`;
-            });
+        // Função para abrir o modal de cadastrar lembrete
+        function abrirModalLembrete() {
+            document.getElementById('modalLembrete').style.display = 'flex';
         }
 
-        // Função para deletar lembretes
-        async function deletarLembrete() {
-            const id = prompt('Digite o ID do lembrete a ser deletado:');
-            try {
-                const response = await fetch(`/lembretes/${id}`, { method: 'DELETE' });
-                const data = await response.json();
-                alert(data.mensagem);
-            } catch (error) {
-                alert('Erro ao deletar o lembrete.');
-            }
+        // Função para fechar o modal de cadastrar lembrete
+        function fecharModalLembrete() {
+            document.getElementById('modalLembrete').style.display = 'none';
         }
 
-        // Função para lidar com comandos no terminal
-        document.getElementById('comandoInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const comando = e.target.value.trim();
-                const terminal = document.getElementById('terminal');
-                terminal.textContent += `\n> ${comando}`;
-
-                switch (comando) {
-                    case '1':
-                        verificarClima();
-                        break;
-                    case '2':
-                        abrirModalEmail();
-                        break;
-                    case '3':
-                        cadastrarLembrete();
-                        break;
-                    case '4':
-                        terminal.textContent += '\nVerificando se vai chover hoje...';
-                        break;
-                    case '5':
-                        listarLembretes();
-                        break;
-                    case '6':
-                        deletarLembrete();
-                        break;
-                    default:
-                        terminal.textContent += '\nComando inválido, tente novamente.';
-                        break;
+        // Função para lidar com comandos
+        document.getElementById('comandoInput').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                const comando = event.target.value.trim();
+                if (comando === '1') {
+                    verificarClima();
+                } else if (comando === '3') {
+                    abrirModalLembrete();
                 }
-
-                e.target.value = '';
+                event.target.value = '';  // Limpa o campo de input
             }
         });
-
-        // Função para abrir o modal de envio de e-mail
-        function abrirModalEmail() {
-            document.getElementById('modalEmail').style.display = 'flex';
-        }
-
-        // Função para fechar o modal
-        function fecharModal() {
-            document.getElementById('modalEmail').style.display = 'none';
-        }
     </script>
 </body>
 </html>
