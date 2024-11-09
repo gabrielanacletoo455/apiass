@@ -4,8 +4,7 @@ const axios = require('axios');
 const cron = require('node-cron');
 const { DateTime } = require('luxon');
 const cors = require('cors'); // Para habilitar CORS
-const path = require('path');
-
+const path = require('path'); // Para manipulação de caminhos de diretórios
 
 // Configurações do e-mail
 const EMAIL_ORIGEM = 'bielbybiel@gmail.com';
