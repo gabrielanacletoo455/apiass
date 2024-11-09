@@ -64,7 +64,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Olá senhor em que posso ajudar?</h1>
+        <h1>Olá senhor, em que posso ajudar?</h1>
         <button class="btn" onclick="verificarClima()">Verificar Clima</button>
         <button class="btn" onclick="enviarEmail()">Enviar E-mail</button>
         <p>Ou digite o número da opção:</p>
@@ -74,19 +74,27 @@
 
     <script>
         async function verificarClima() {
+            const terminal = document.getElementById('terminal');
+            terminal.textContent = 'Buscando informações...';
+
             try {
                 const response = await fetch('/verificar-clima');
                 const data = await response.json();
-                const terminal = document.getElementById('terminal');
                 terminal.textContent = data.mensagem || "Não foi possível obter as informações climáticas.";
             } catch (error) {
                 console.log('Erro ao verificar o clima:', error);
+                terminal.textContent = "Erro ao buscar o clima, tente novamente.";
             }
         }
 
         async function enviarEmail() {
             const mensagem = prompt('Digite a mensagem do e-mail:');
             const assunto = prompt('Digite o assunto do e-mail:');
+
+            if (!mensagem || !assunto) {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
 
             const emailData = {
                 mensagem,
@@ -105,6 +113,7 @@
                 alert(data.mensagem);
             } catch (error) {
                 console.log('Erro ao enviar o e-mail:', error);
+                alert('Erro ao enviar o e-mail, tente novamente.');
             }
         }
 
