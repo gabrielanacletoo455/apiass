@@ -3,69 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciamento de Lembretes</title>
-    <style>
-        #lembretes-container {
-            display: none;
-            margin-top: 20px;
-        }
-        .lembrete {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-    </style>
+    <title>Interface com API</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Gerenciar Lembretes</h1>
+<body class="bg-gray-100">
 
-    <!-- Botão para listar/esconder lembretes -->
-    <button id="toggleButton">Listar Lembretes</button>
+    <!-- Container principal -->
+    <div class="container mx-auto p-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <!-- Botões de ação -->
+            <button onclick="openModal('modal-clima')" class="bg-blue-500 text-white p-4 rounded hover:bg-blue-600 focus:outline-none">Verificar Clima</button>
+            <button onclick="openModal('modal-email')" class="bg-green-500 text-white p-4 rounded hover:bg-green-600 focus:outline-none">Enviar E-mail</button>
+            <button onclick="openModal('modal-lembrete')" class="bg-purple-500 text-white p-4 rounded hover:bg-purple-600 focus:outline-none">Cadastrar Lembrete</button>
+        </div>
+    </div>
 
-    <!-- Container de lembretes -->
-    <div id="lembretes-container"></div>
+    <!-- Modal Clima -->
+    <div id="modal-clima" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-xl font-semibold mb-4">Condições Climáticas</h2>
+            <div id="clima-info" class="mb-4">Carregando...</div>
+            <button onclick="closeModal('modal-clima')" class="bg-red-500 text-white p-2 rounded w-full">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal Enviar E-mail -->
+    <div id="modal-email" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-xl font-semibold mb-4">Enviar E-mail</h2>
+            <form id="email-form">
+                <label for="email-subject" class="block mb-2">Assunto</label>
+                <input type="text" id="email-subject" class="w-full p-2 border border-gray-300 rounded mb-4" required>
+
+                <label for="email-message" class="block mb-2">Mensagem</label>
+                <textarea id="email-message" class="w-full p-2 border border-gray-300 rounded mb-4" required></textarea>
+
+                <button type="submit" class="bg-blue-500 text-white p-2 rounded w-full">Enviar</button>
+            </form>
+            <button onclick="closeModal('modal-email')" class="bg-red-500 text-white p-2 rounded w-full mt-2">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal Cadastrar Lembrete -->
+    <div id="modal-lembrete" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-xl font-semibold mb-4">Cadastrar Lembrete</h2>
+            <form id="lembrete-form">
+                <label for="lembrete-titulo" class="block mb-2">Título</label>
+                <input type="text" id="lembrete-titulo" class="w-full p-2 border border-gray-300 rounded mb-4" required>
+
+                <label for="lembrete-descricao" class="block mb-2">Descrição</label>
+                <textarea id="lembrete-descricao" class="w-full p-2 border border-gray-300 rounded mb-4" required></textarea>
+
+                <label for="lembrete-dataHora" class="block mb-2">Data e Hora</label>
+                <input type="datetime-local" id="lembrete-dataHora" class="w-full p-2 border border-gray-300 rounded mb-4" required>
+
+                <button type="submit" class="bg-blue-500 text-white p-2 rounded w-full">Cadastrar Lembrete</button>
+            </form>
+            <button onclick="closeModal('modal-lembrete')" class="bg-red-500 text-white p-2 rounded w-full mt-2">Fechar</button>
+        </div>
+    </div>
 
     <script>
-        // Variável para controlar o estado de exibição
-        let mostrandoLembretes = false;
-
-        // Função para buscar e exibir os lembretes
-        async function listarLembretes() {
-            const response = await fetch('/lembretes');
-            const lembretes = await response.json();
-            const lembretesContainer = document.getElementById('lembretes-container');
-            
-            // Limpa os lembretes exibidos anteriormente
-            lembretesContainer.innerHTML = '';
-            
-            // Exibe os lembretes na tela
-            lembretes.forEach(lembrete => {
-                const div = document.createElement('div');
-                div.classList.add('lembrete');
-                div.innerHTML = `
-                    <h3>${lembrete.titulo}</h3>
-                    <p>${lembrete.descricao}</p>
-                    <p><strong>Data e Hora:</strong> ${lembrete.dataHora}</p>
-                `;
-                lembretesContainer.appendChild(div);
-            });
+        // Função para abrir o modal
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('hidden');  // Exibe o modal
+            if (modalId === 'modal-clima') {
+                fetchWeather();
+            }
         }
 
-        // Função para alternar a visibilidade dos lembretes
-        document.getElementById('toggleButton').addEventListener('click', () => {
-            const lembretesContainer = document.getElementById('lembretes-container');
-            mostrandoLembretes = !mostrandoLembretes;
+        // Função para fechar o modal
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('hidden');  // Esconde o modal
+        }
 
-            // Alterar o texto do botão
-            document.getElementById('toggleButton').textContent = mostrandoLembretes ? 'Esconder Lembretes' : 'Listar Lembretes';
+        // Função para buscar as condições climáticas
+        async function fetchWeather() {
+            const climaInfo = document.getElementById('clima-info');
+            try {
+                const response = await fetch('/verificar-clima');
+                const data = await response.json();
+                climaInfo.textContent = data.mensagem || 'Erro ao obter o clima.';
+            } catch (error) {
+                climaInfo.textContent = 'Erro ao obter o clima.';
+            }
+        }
 
-            // Alternar a exibição dos lembretes
-            if (mostrandoLembretes) {
-                listarLembretes();
-                lembretesContainer.style.display = 'block';
-            } else {
-                lembretesContainer.style.display = 'none';
+        // Enviar e-mail
+        const emailForm = document.getElementById('email-form');
+        emailForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const subject = document.getElementById('email-subject').value;
+            const message = document.getElementById('email-message').value;
+
+            try {
+                const response = await fetch('/enviar-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mensagem: message, assunto: subject }),
+                });
+
+                const data = await response.json();
+                alert(data.mensagem);
+                closeModal('modal-email');
+            } catch (error) {
+                alert('Erro ao enviar o e-mail.');
+            }
+        });
+
+        // Cadastrar lembrete
+        const lembreteForm = document.getElementById('lembrete-form');
+        lembreteForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const titulo = document.getElementById('lembrete-titulo').value;
+            const descricao = document.getElementById('lembrete-descricao').value;
+            const dataHora = document.getElementById('lembrete-dataHora').value;
+
+            try {
+                const response = await fetch('/lembretes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        titulo,
+                        descricao,
+                        dataHora,
+                    }),
+                });
+
+                const data = await response.json();
+                alert('Lembrete cadastrado com sucesso!');
+                closeModal('modal-lembrete');
+            } catch (error) {
+                alert('Erro ao cadastrar o lembrete.');
             }
         });
     </script>
