@@ -4,162 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alfred - Assistente Pessoal</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: #181818;
             color: #f0f0f0;
-            margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
-            padding-top: 20px;
+            margin: 0;
         }
-        h1 {
-            margin-bottom: 20px;
-            text-align: center;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #2d2d2d;
+            border-radius: 10px;
         }
         .btn {
             background-color: #4CAF50;
             color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 18px;
-            cursor: pointer;
-            margin: 10px;
+            padding: 12px 24px;
             border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
         .btn:hover {
             background-color: #45a049;
         }
-        input, textarea {
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-top: 10px;
-            background-color: #333;
-            color: white;
-            width: 100%;
-            max-width: 400px;
-        }
-        .container {
+        .title {
             text-align: center;
-            width: 100%;
-            max-width: 500px;
+            margin-bottom: 20px;
+            font-size: 24px;
         }
-        .terminal {
-            background-color: #222;
-            color: #0f0;
-            padding: 15px;
-            width: 100%;
-            max-width: 500px;
-            margin-top: 20px;
-            font-family: 'Courier New', Courier, monospace;
-            border-radius: 8px;
-            height: 150px;
-            overflow-y: auto;
-            text-align: left;
+        .form-group {
+            margin-bottom: 15px;
         }
-        .lembretes-lista {
-            margin-top: 30px;
+        .input {
             width: 100%;
-            max-width: 500px;
-            text-align: left;
-        }
-        .lembrete-item {
+            padding: 12px;
             background-color: #333;
-            padding: 10px;
-            margin-bottom: 10px;
+            color: #fff;
+            border: 1px solid #555;
             border-radius: 8px;
         }
-        .lembrete-item button {
-            background-color: red;
-            border: none;
-            padding: 5px 10px;
-            color: white;
-            cursor: pointer;
-            margin-left: 10px;
-            border-radius: 5px;
+        .input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .response {
+            margin-top: 20px;
+        }
+        .list {
+            margin-top: 30px;
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Olá senhor, em que posso ajudar?</h1>
+        <h1 class="title">Alfred - Assistente Pessoal</h1>
+        <div class="form-group">
+            <label for="titulo" class="block text-lg">Título do Lembrete:</label>
+            <input type="text" id="titulo" class="input" placeholder="Digite o título do lembrete">
+        </div>
+        <div class="form-group">
+            <label for="descricao" class="block text-lg">Descrição do Lembrete:</label>
+            <textarea id="descricao" class="input" rows="4" placeholder="Digite a descrição do lembrete"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="dataHora" class="block text-lg">Data e Hora:</label>
+            <input type="datetime-local" id="dataHora" class="input">
+        </div>
+        <div class="text-center">
+            <button class="btn" onclick="cadastrarLembrete()">Cadastrar Lembrete</button>
+        </div>
 
-        <!-- Botões de interação -->
-        <button class="btn" onclick="verificarClima()">Verificar Clima</button>
-        <button class="btn" onclick="enviarEmail()">Enviar E-mail</button>
-        
-        <h2>Cadastrar Lembrete</h2>
-        <input type="text" id="tituloLembrete" placeholder="Título do lembrete">
-        <textarea id="descricaoLembrete" placeholder="Descrição do lembrete"></textarea>
-        <input type="datetime-local" id="dataHoraLembrete">
-        <button class="btn" onclick="cadastrarLembrete()">Cadastrar Lembrete</button>
+        <div class="response" id="response"></div>
 
-        <!-- Listar Lembretes -->
-        <div class="lembretes-lista" id="lembretesLista"></div>
-
-        <!-- Terminal para interações -->
-        <div class="terminal" id="terminal"></div>
+        <div class="list">
+            <h2 class="text-center text-lg">Lembretes Cadastrados</h2>
+            <ul id="lembretesList"></ul>
+        </div>
     </div>
 
     <script>
-        async function verificarClima() {
-            const terminal = document.getElementById('terminal');
-            terminal.textContent = 'Buscando informações...';
-
-            try {
-                const response = await fetch('/verificar-clima');
-                const data = await response.json();
-                terminal.textContent = data.mensagem || "Não foi possível obter as informações climáticas.";
-            } catch (error) {
-                console.log('Erro ao verificar o clima:', error);
-                terminal.textContent = "Erro ao buscar o clima, tente novamente.";
-            }
-        }
-
-        async function enviarEmail() {
-            const mensagem = prompt('Digite a mensagem do e-mail:');
-            const assunto = prompt('Digite o assunto do e-mail:');
-
-            if (!mensagem || !assunto) {
-                alert('Por favor, preencha todos os campos!');
-                return;
-            }
-
-            const emailData = {
-                mensagem,
-                assunto
-            };
-
-            try {
-                const response = await fetch('/enviar-email', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(emailData)
-                });
-                const data = await response.json();
-                alert(data.mensagem);
-            } catch (error) {
-                console.log('Erro ao enviar o e-mail:', error);
-                alert('Erro ao enviar o e-mail, tente novamente.');
-            }
-        }
-
         async function cadastrarLembrete() {
-            const titulo = document.getElementById('tituloLembrete').value;
-            const descricao = document.getElementById('descricaoLembrete').value;
-            const dataHora = document.getElementById('dataHoraLembrete').value;
+            const titulo = document.getElementById('titulo').value;
+            const descricao = document.getElementById('descricao').value;
+            const dataHora = document.getElementById('dataHora').value;
 
             if (!titulo || !descricao || !dataHora) {
-                alert('Preencha todos os campos para cadastrar um lembrete.');
+                alert('Por favor, preencha todos os campos!');
                 return;
             }
 
@@ -179,34 +116,40 @@
                 });
 
                 const data = await response.json();
-                alert('Lembrete cadastrado com sucesso!');
-                listarLembretes(); // Atualiza a lista de lembretes
+                document.getElementById('response').textContent = `Lembrete "${data.titulo}" cadastrado com sucesso!`;
+                listarLembretes(); // Atualiza a lista de lembretes após cadastro
             } catch (error) {
-                console.log('Erro ao cadastrar lembrete:', error);
-                alert('Erro ao cadastrar o lembrete, tente novamente.');
+                console.error('Erro ao cadastrar o lembrete:', error);
+                document.getElementById('response').textContent = 'Erro ao cadastrar o lembrete, tente novamente.';
             }
         }
 
         async function listarLembretes() {
-            const response = await fetch('/lembretes');
-            const lembretes = await response.json();
-            const lista = document.getElementById('lembretesLista');
-            lista.innerHTML = ''; // Limpa a lista antes de adicionar os novos lembretes
+            try {
+                const response = await fetch('/lembretes');
+                const lembretes = await response.json();
 
-            lembretes.forEach(lembrete => {
-                const lembreteItem = document.createElement('div');
-                lembreteItem.className = 'lembrete-item';
-                lembreteItem.innerHTML = `
-                    <strong>${lembrete.titulo}</strong><br>
-                    ${lembrete.descricao}<br>
-                    <small>Data: ${lembrete.dataHora}</small>
-                    <button onclick="deletarLembrete(${lembrete.id})">Deletar</button>
-                `;
-                lista.appendChild(lembreteItem);
-            });
+                const listElement = document.getElementById('lembretesList');
+                listElement.innerHTML = ''; // Limpa a lista antes de exibir os novos lembretes
+
+                lembretes.forEach(lembrete => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('text-white', 'py-2', 'border-b', 'border-gray-700');
+                    listItem.innerHTML = `
+                        <strong>${lembrete.titulo}</strong><br>
+                        ${lembrete.descricao}<br>
+                        <em>Data: ${formatarDataHora(lembrete.dataHora)}</em>
+                        <button class="btn mt-2" onclick="excluirLembrete(${lembrete.id})">Excluir</button>
+                    `;
+                    listElement.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Erro ao listar os lembretes:', error);
+                document.getElementById('lembretesList').textContent = 'Erro ao carregar os lembretes.';
+            }
         }
 
-        async function deletarLembrete(id) {
+        async function excluirLembrete(id) {
             try {
                 const response = await fetch(`/lembretes/${id}`, {
                     method: 'DELETE'
@@ -214,14 +157,26 @@
 
                 const data = await response.json();
                 alert(data.mensagem);
-                listarLembretes(); // Atualiza a lista de lembretes
+                listarLembretes(); // Atualiza a lista após a exclusão
             } catch (error) {
-                console.log('Erro ao deletar lembrete:', error);
-                alert('Erro ao deletar o lembrete, tente novamente.');
+                console.error('Erro ao excluir o lembrete:', error);
+                alert('Erro ao excluir o lembrete, tente novamente.');
             }
         }
 
-        // Carregar a lista de lembretes ao iniciar
+        function formatarDataHora(dataHora) {
+            const dt = new Date(dataHora);
+            return dt.toLocaleString('pt-BR', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Chama a função de listar lembretes ao carregar a página
         window.onload = listarLembretes;
     </script>
 </body>
