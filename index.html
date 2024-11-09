@@ -103,12 +103,41 @@
         <button onclick="executeCommand(3)">[3] Listar lembretes</button>
         <button onclick="executeCommand(4)">[4] Deletar algum lembrete</button>
         <button onclick="executeCommand(5)">[5] Enviar e-mail para:</button>
-        <!-- Adicione outros comandos conforme necessário -->
     </div>
 </div>
 
 <script>
-    function executeCommand(commandId) {
+    // Função para fazer requisição à API do clima
+    async function verificarClima() {
+        try {
+            const response = await fetch('http://localhost:3000/verificar-clima');
+            const data = await response.json();
+            return data.mensagem;
+        } catch (error) {
+            return 'Erro ao obter previsão do tempo.';
+        }
+    }
+
+    // Função para enviar e-mail pela API
+    async function enviarEmail(mensagem, assunto) {
+        try {
+            const response = await fetch('http://localhost:3000/enviar-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ mensagem, assunto })
+            });
+
+            const data = await response.json();
+            return data.mensagem;
+        } catch (error) {
+            return 'Erro ao enviar e-mail.';
+        }
+    }
+
+    // Função para processar o comando do usuário
+    async function executeCommand(commandId) {
         const inputField = document.getElementById('user-input');
         const userInput = inputField.value.trim();
         const terminal = document.querySelector('.terminal pre');
@@ -117,11 +146,13 @@
             terminal.innerHTML += `\n> ${userInput}`;
         }
 
-        inputField.value = '';
+        inputField.value = ''; // Limpar campo de entrada
 
         switch (commandId) {
             case 1:
-                terminal.innerHTML += `\nPrevisão do tempo: Enviado para o assistente...`;
+                terminal.innerHTML += `\nPrevisão do tempo: Aguardando resposta...`;
+                const clima = await verificarClima();
+                terminal.innerHTML += `\n${clima}`;
                 break;
             case 2:
                 terminal.innerHTML += `\nAdicionar lembrete: Enviado para o assistente...`;
@@ -134,6 +165,9 @@
                 break;
             case 5:
                 terminal.innerHTML += `\nEnviar e-mail: Digite o endereço de e-mail para enviar.`;
+                // Você pode implementar a coleta de e-mail aqui
+                const emailResposta = await enviarEmail("Mensagem de teste", "Assunto de teste");
+                terminal.innerHTML += `\n${emailResposta}`;
                 break;
             default:
                 terminal.innerHTML += `\nComando desconhecido!`;
