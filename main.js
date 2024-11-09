@@ -27,6 +27,9 @@ app.use(cors());
 // Middleware para servir arquivos estáticos (como index.html)
 app.use(express.static(path.join(__dirname)));
 
+// Estrutura de armazenamento de lembretes (array simples)
+let lembretes = [];  // Usando um array na memória para armazenar lembretes
+
 // Função para verificar as condições climáticas
 async function verificarCondicoesClimaticas() {
     try {
@@ -109,8 +112,7 @@ function saudacao() {
 // Servir index.html para a raiz
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));  // Serve o arquivo index.html da raiz
-  });
-
+});
 
 // Endpoint para verificar o clima
 app.get('/verificar-clima', async (req, res) => {
@@ -127,6 +129,31 @@ app.post('/enviar-email', (req, res) => {
     const { mensagem, assunto } = req.body;
     enviarEmail(mensagem, assunto);
     res.status(200).send({ mensagem: 'E-mail enviado com sucesso!' });
+});
+
+// Endpoint para cadastrar um lembrete
+app.post('/lembretes', (req, res) => {
+    const { titulo, descricao, dataHora } = req.body;
+    const lembrete = {
+        id: lembretes.length + 1,
+        titulo,
+        descricao,
+        dataHora: DateTime.fromISO(dataHora)
+    };
+    lembretes.push(lembrete);
+    res.status(201).send(lembrete);
+});
+
+// Endpoint para listar os lembretes
+app.get('/lembretes', (req, res) => {
+    res.status(200).send(lembretes);
+});
+
+// Endpoint para excluir um lembrete
+app.delete('/lembretes/:id', (req, res) => {
+    const { id } = req.params;
+    lembretes = lembretes.filter(lembrete => lembrete.id != id);
+    res.status(200).send({ mensagem: 'Lembrete excluído com sucesso.' });
 });
 
 // Agendamento com cron (executa a cada hora)
