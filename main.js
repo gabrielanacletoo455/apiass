@@ -4,6 +4,8 @@ const axios = require('axios');
 const cron = require('node-cron');
 const { DateTime } = require('luxon');
 const cors = require('cors'); // Para habilitar CORS
+const path = require('path');
+
 
 // Configurações do e-mail
 const EMAIL_ORIGEM = 'bielbybiel@gmail.com';
@@ -22,6 +24,9 @@ const port = 3000;
 // Middleware para permitir JSON nos corpos das requisições e CORS
 app.use(express.json());
 app.use(cors());
+
+// Middleware para servir arquivos estáticos (como index.html)
+app.use(express.static(path.join(__dirname)));
 
 // Função para verificar as condições climáticas
 async function verificarCondicoesClimaticas() {
