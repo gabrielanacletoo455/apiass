@@ -103,6 +103,12 @@ function saudacao() {
     }
 }
 
+// Servir index.html para a raiz
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));  // Serve o arquivo index.html da raiz
+  });
+
+  
 // Endpoint para verificar o clima
 app.get('/verificar-clima', async (req, res) => {
     const mensagemClima = await verificarCondicoesClimaticas();
