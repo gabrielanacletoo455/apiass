@@ -145,6 +145,19 @@
                 width: 90%;
                 padding: 10px;
             }
+
+            .terminal {
+                padding: 10px;
+            }
+
+            .modal-content {
+                width: 100%;
+                padding: 15px;
+            }
+
+            input, textarea {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -270,16 +283,31 @@
             document.getElementById('modalLembrete').style.display = 'none';
         }
 
-        // Função para lidar com comandos
-        document.getElementById('comandoInput').addEventListener('keydown', (event) => {
+        // Função para abrir o modal de enviar e-mail
+        function abrirModalEmail() {
+            document.getElementById('modalEmail').style.display = 'flex';
+        }
+
+        // Função para fechar o modal de enviar e-mail
+        function fecharModal() {
+            document.getElementById('modalEmail').style.display = 'none';
+        }
+
+        // Função principal para capturar o comando
+        document.getElementById('comandoInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
-                const comando = event.target.value.trim();
+                const comando = event.target.value.toLowerCase().trim();
+                event.target.value = '';
+
                 if (comando === '1') {
                     verificarClima();
+                } else if (comando === '2') {
+                    abrirModalEmail();
                 } else if (comando === '3') {
                     abrirModalLembrete();
+                } else {
+                    alert('Comando inválido!');
                 }
-                event.target.value = '';  // Limpa o campo de input
             }
         });
     </script>
