@@ -1,174 +1,156 @@
-const express = require('express');
-const nodemailer = require('nodemailer');
-const axios = require('axios');
-const cron = require('node-cron');
-const { DateTime } = require('luxon');
-const cors = require('cors'); // Para habilitar CORS
-const path = require('path'); // Para manipulação de caminhos de diretórios
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alfred - Assistente Pessoal</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.js" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
 
-// Configurações do e-mail
-const EMAIL_ORIGEM = 'bielbybiel@gmail.com';
-const EMAIL_DESTINO = 'gabrielanacleto159@live.com';
-const SENHA = 'oxeve-senha-gerada-no-google';  // Substitua pela sua senha de aplicativo
+    <!-- Container principal -->
+    <div class="max-w-4xl mx-auto p-4">
 
-// Configuração da API de previsão do tempo
-const API_KEY = 'bd5e378503939ddaee76f12ad7a97608';  // Substitua pela sua chave da API
-const CITY = 'Bauru';
-const API_URL = `http://api.openweathermap.org/data/2.5/weather?q=${CITY}&appid=${API_KEY}&units=metric&lang=pt_br`;
+        <!-- Cabeçalho -->
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-semibold text-gray-800">Alfred - Assistente Pessoal</h1>
+        </header>
 
-// Criar uma instância do Express
-const app = express();
-const port = 3000;
+        <!-- Botões de ação -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
-// Middleware para permitir JSON nos corpos das requisições e CORS
-app.use(express.json());
-app.use(cors());
+            <!-- Botão para Verificar o Clima -->
+            <button @click="modalTipo = 'clima'; abrirModal()" class="bg-blue-500 text-white p-4 rounded-md shadow hover:bg-blue-600">
+                Verificar Clima
+            </button>
 
-// Middleware para servir arquivos estáticos (como index.html)
-app.use(express.static(path.join(__dirname)));
+            <!-- Botão para Registrar Lembrete -->
+            <button @click="modalTipo = 'lembrete'; abrirModal()" class="bg-green-500 text-white p-4 rounded-md shadow hover:bg-green-600">
+                Registrar Lembrete
+            </button>
 
-// Estrutura de armazenamento de lembretes (array simples)
-let lembretes = [];  // Usando um array na memória para armazenar lembretes
+            <!-- Botão para Enviar E-mail -->
+            <button @click="modalTipo = 'email'; abrirModal()" class="bg-yellow-500 text-white p-4 rounded-md shadow hover:bg-yellow-600">
+                Enviar E-mail
+            </button>
 
-// Função para verificar as condições climáticas
-async function verificarCondicoesClimaticas() {
-    try {
-        const resposta = await axios.get(API_URL);
-        const data = resposta.data;
+        </div>
 
-        if (resposta.status !== 200) {
-            console.log("Alfred: Houve um problema ao obter os dados do tempo, chefe.");
-            return null;
+    </div>
+
+    <!-- Modal -->
+    <div x-show="isOpen" x-cloak @click.away="fecharModal()" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+        
+        <!-- Conteúdo do Modal -->
+        <div class="bg-white p-6 rounded-lg w-11/12 sm:w-1/2 md:w-1/3 shadow-lg">
+            
+            <div x-show="modalTipo === 'clima'">
+                <h2 class="text-2xl mb-4">Previsão do Clima</h2>
+                <div id="climaInfo" class="text-sm"></div>
+                <button @click="fecharModal()" class="mt-4 bg-red-500 text-white p-2 rounded-md w-full">Fechar</button>
+            </div>
+
+            <div x-show="modalTipo === 'lembrete'">
+                <h2 class="text-2xl mb-4">Registrar Lembrete</h2>
+                <form id="formLembrete">
+                    <div class="mb-4">
+                        <label for="titulo" class="block text-sm font-semibold">Título:</label>
+                        <input type="text" id="titulo" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Título do Lembrete">
+                    </div>
+                    <div class="mb-4">
+                        <label for="descricao" class="block text-sm font-semibold">Descrição:</label>
+                        <textarea id="descricao" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Descrição do Lembrete"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="dataHora" class="block text-sm font-semibold">Data e Hora:</label>
+                        <input type="datetime-local" id="dataHora" class="w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <button type="submit" class="bg-green-500 text-white p-2 rounded-md w-full">Cadastrar Lembrete</button>
+                </form>
+                <button @click="fecharModal()" class="mt-4 bg-red-500 text-white p-2 rounded-md w-full">Fechar</button>
+            </div>
+
+            <div x-show="modalTipo === 'email'">
+                <h2 class="text-2xl mb-4">Enviar E-mail</h2>
+                <form id="formEmail">
+                    <div class="mb-4">
+                        <label for="mensagem" class="block text-sm font-semibold">Mensagem:</label>
+                        <textarea id="mensagem" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Escreva sua mensagem"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="assunto" class="block text-sm font-semibold">Assunto:</label>
+                        <input type="text" id="assunto" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Assunto do E-mail">
+                    </div>
+                    <button type="submit" class="bg-yellow-500 text-white p-2 rounded-md w-full">Enviar E-mail</button>
+                </form>
+                <button @click="fecharModal()" class="mt-4 bg-red-500 text-white p-2 rounded-md w-full">Fechar</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script Alpine.js e funções -->
+    <script>
+        function app() {
+            return {
+                isOpen: false,
+                modalTipo: null,
+
+                abrirModal() {
+                    this.isOpen = true;
+                    if (this.modalTipo === 'clima') {
+                        this.carregarClima();
+                    }
+                },
+
+                fecharModal() {
+                    this.isOpen = false;
+                    document.getElementById("formLembrete").reset();
+                    document.getElementById("formEmail").reset();
+                },
+
+                async carregarClima() {
+                    try {
+                        const resposta = await axios.get('http://localhost:3000/verificar-clima');
+                        document.getElementById('climaInfo').innerText = resposta.data.mensagem;
+                    } catch (error) {
+                        document.getElementById('climaInfo').innerText = "Não foi possível carregar o clima.";
+                    }
+                },
+
+                async enviarLembrete(event) {
+                    event.preventDefault();
+                    const titulo = document.getElementById("titulo").value;
+                    const descricao = document.getElementById("descricao").value;
+                    const dataHora = document.getElementById("dataHora").value;
+
+                    try {
+                        await axios.post('http://localhost:3000/lembretes', { titulo, descricao, dataHora });
+                        alert('Lembrete registrado com sucesso!');
+                        this.fecharModal();
+                    } catch (error) {
+                        alert('Erro ao registrar lembrete.');
+                    }
+                },
+
+                async enviarEmail(event) {
+                    event.preventDefault();
+                    const mensagem = document.getElementById("mensagem").value;
+                    const assunto = document.getElementById("assunto").value;
+
+                    try {
+                        await axios.post('http://localhost:3000/enviar-email', { mensagem, assunto });
+                        alert('E-mail enviado com sucesso!');
+                        this.fecharModal();
+                    } catch (error) {
+                        alert('Erro ao enviar e-mail.');
+                    }
+                }
+            }
         }
+    </script>
 
-        const temperatura = data.main.temp;
-        const descricao = data.weather[0].description;
-        const vaiChover = descricao.toLowerCase().includes('chuva');
-
-        let mensagem = `Trazendo a previsão do tempo para ${CITY}:\n\n`;
-        if (temperatura > 33) {
-            mensagem += "Alfred: Vai estar muito acima da temperatura que você gosta, chefe! Temperatura prevista acima de 33°C.\n";
-        } else if (temperatura > 30) {
-            mensagem += "Alfred: A temperatura estará um pouco acima do confortável hoje, mais de 30°C.\n";
-        } else if (temperatura < 27) {
-            mensagem += "Alfred: Ótimas notícias, chefe! A temperatura estará agradável hoje, abaixo de 27°C.\n";
-        } else {
-            mensagem += "Alfred: A temperatura está dentro do normal.\n";
-        }
-
-        if (vaiChover) {
-            mensagem += "Alfred: Previsão de chuva, senhor. Não se esqueça do guarda-chuva!\n";
-        }
-
-        mensagem += `\nTemperatura atual: ${temperatura}°C\nCondições: ${descricao.charAt(0).toUpperCase() + descricao.slice(1)}`;
-        return mensagem;
-    } catch (error) {
-        console.log("Alfred: Houve um erro ao acessar a API do tempo.", error);
-        return null;
-    }
-}
-
-// Função para enviar o e-mail
-function enviarEmail(mensagem, assunto = "Notificação do Alfred") {
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: EMAIL_ORIGEM,
-            pass: SENHA,
-        },
-        tls: {
-            rejectUnauthorized: false 
-        }
-    });
-
-    const mailOptions = {
-        from: EMAIL_ORIGEM,
-        to: EMAIL_DESTINO,
-        subject: assunto,
-        text: mensagem
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log(`Alfred: Houve um erro ao enviar o e-mail, chefe: ${error}`);
-        } else {
-            console.log(`Alfred: E-mail enviado com sucesso! ${info.response}`);
-        }
-    });
-}
-
-// Função de saudação
-function saudacao() {
-    const horaAtual = DateTime.local().hour;
-    if (horaAtual >= 5 && horaAtual < 12) {
-        return "Bom dia senhor.";
-    } else if (horaAtual >= 12 && horaAtual < 18) {
-        return "Boa tarde senhor.";
-    } else {
-        return "Boa noite senhor.";
-    }
-}
-
-// Servir index.html para a raiz
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));  // Serve o arquivo index.html da raiz
-});
-
-// Endpoint para verificar o clima
-app.get('/verificar-clima', async (req, res) => {
-    const mensagemClima = await verificarCondicoesClimaticas();
-    if (mensagemClima) {
-        res.status(200).send({ mensagem: mensagemClima });
-    } else {
-        res.status(500).send({ mensagem: 'Não foi possível obter as informações climáticas.' });
-    }
-});
-
-// Endpoint para enviar um e-mail manualmente
-app.post('/enviar-email', (req, res) => {
-    const { mensagem, assunto } = req.body;
-    enviarEmail(mensagem, assunto);
-    res.status(200).send({ mensagem: 'E-mail enviado com sucesso!' });
-});
-
-// Endpoint para cadastrar um lembrete
-app.post('/lembretes', (req, res) => {
-    const { titulo, descricao, dataHora } = req.body;
-    const lembrete = {
-        id: lembretes.length + 1,
-        titulo,
-        descricao,
-        dataHora: DateTime.fromISO(dataHora)
-    };
-    lembretes.push(lembrete);
-    res.status(201).send(lembrete);
-});
-
-// Endpoint para listar os lembretes
-app.get('/lembretes', (req, res) => {
-    res.status(200).send(lembretes);
-});
-
-// Endpoint para excluir um lembrete
-app.delete('/lembretes/:id', (req, res) => {
-    const { id } = req.params;
-    lembretes = lembretes.filter(lembrete => lembrete.id != id);
-    res.status(200).send({ mensagem: 'Lembrete excluído com sucesso.' });
-});
-
-// Agendamento com cron (executa a cada hora)
-cron.schedule('0 * * * *', async () => {
-    const saudacaoMensagem = saudacao();
-    console.log(saudacaoMensagem);
-
-    const mensagemClima = await verificarCondicoesClimaticas();
-    if (mensagemClima) {
-        enviarEmail(mensagemClima);
-        console.log(mensagemClima);
-    }
-});
-
-// Inicialização da API
-app.listen(port, () => {
-    console.log(`Alfred operando na porta ${port}`);
-});
+</body>
+</html>
